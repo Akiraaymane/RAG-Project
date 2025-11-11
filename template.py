@@ -1,6 +1,3 @@
-"""
-template.py - Script pour créer automatiquement l'architecture du projet RAG
-"""
 import os
 from pathlib import Path
 
