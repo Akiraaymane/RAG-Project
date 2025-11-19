@@ -1,1 +1,0 @@
-@le framework LangChain ( https://python.langchain.com/docs/tutorials/rag/ )
