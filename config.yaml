@@ -9,8 +9,8 @@ paths:
 
 # Document Processing
 document_processing:
-  chunk_size: 512
-  chunk_overlap: 50
+  chunk_size: 1000
+  chunk_overlap: 200
   split_method: "recursive"  # Options: markdown, recursive, character
 
 # Embedding Model (Hugging Face)
@@ -32,8 +32,8 @@ retrieval:
 # LLM Configuration - Ollama
 llm:
   provider: "ollama"
-  model_name: "phi3.5"  # Your Ollama model (run: ollama pull phi3.5)
-  base_url: "http://localhost:11434"  # Ollama server URL
+  model_name: "qwen2.5:1.5b"  # Qwen 2.5 1.5B model
+  base_url: "http://localhost:11434"
   max_new_tokens: 512
   temperature: 0.7
 
