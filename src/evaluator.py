@@ -397,10 +397,18 @@ class RAGEvaluator:
             r['metadata'].get('source', '') for r in retrieved
         ]
         
+        # Normalize source names for comparison (handle path differences)
+        def normalize_source(s):
+            """Extract just the filename from a path."""
+            return Path(s).name.lower() if s else ""
+        
+        normalized_expected = [normalize_source(s) for s in expected_sources]
+        normalized_retrieved = [normalize_source(s) for s in retrieved_sources]
+        
         # Calculate retrieval metrics
         metrics = RetrievalMetrics.evaluate(
-            relevant_docs=expected_sources,
-            retrieved_docs=retrieved_sources,
+            relevant_docs=normalized_expected,
+            retrieved_docs=normalized_retrieved,
             k=k
         )
         
