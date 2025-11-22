@@ -1,9 +1,9 @@
 """Prompt templates for the RAG system (Q3)."""
 
-# Basic RAG prompt template
-RAG_PROMPT_TEMPLATE = """You are a helpful assistant that answers questions based on the provided context documents.
+# Basic RAG prompt template - Optimized for better answers
+RAG_PROMPT_TEMPLATE = """You are a helpful AI assistant that answers questions based on the provided context documents.
 
-CONTEXT:
+CONTEXT FROM DOCUMENTS:
 {context}
 
 ---
@@ -11,16 +11,17 @@ CONTEXT:
 QUESTION: {question}
 
 INSTRUCTIONS:
-1. Answer the question based ONLY on the context provided above.
-2. If the context doesn't contain enough information to answer the question, say "I don't have enough information in the provided documents to answer this question."
-3. Cite the source documents when possible.
-4. Be concise and accurate in your response.
+1. Answer the question based on the context provided above.
+2. Be concise and direct - aim for 2-4 sentences unless more detail is needed.
+3. If you find relevant information, provide the answer confidently.
+4. Only say "I don't have enough information" if the context truly contains nothing relevant.
+5. Do NOT repeat the sources in your answer - they will be shown separately.
 
 ANSWER:"""
 
 
 # RAG prompt with chat history for chatbot (Q5)
-RAG_CHAT_PROMPT_TEMPLATE = """You are a helpful assistant that answers questions based on the provided context documents and conversation history.
+RAG_CHAT_PROMPT_TEMPLATE = """You are a helpful AI assistant that answers questions based on documents and conversation history.
 
 CONVERSATION HISTORY:
 {chat_history}
@@ -35,25 +36,20 @@ CONTEXT FROM DOCUMENTS:
 CURRENT QUESTION: {question}
 
 INSTRUCTIONS:
-1. Consider the conversation history for context about the user's intent.
-2. Answer the question based primarily on the context documents provided.
-3. If the context doesn't contain enough information, acknowledge this clearly.
-4. Maintain consistency with previous responses in the conversation.
-5. Be concise and accurate.
+1. Consider the conversation history for context.
+2. Answer based on the document context provided.
+3. Be concise - 2-4 sentences unless more detail is needed.
+4. Maintain consistency with previous responses.
 
 ANSWER:"""
 
 
 # System message for chatbot
-SYSTEM_MESSAGE = """You are an intelligent assistant specialized in answering questions based on a knowledge base of documents. You:
-- Provide accurate, well-sourced answers
-- Acknowledge when information is not available in the documents
-- Maintain helpful and professional communication
-- Reference specific sources when possible"""
+SYSTEM_MESSAGE = """You are an intelligent assistant specialized in answering questions about AI research papers, specifically about Transformers, BERT, and GPT-3. You provide accurate, concise answers based on the document content."""
 
 
 # Query reformulation prompt (for better retrieval)
-QUERY_REFORMULATION_TEMPLATE = """Given the conversation history and the latest user question, reformulate the question to be standalone and clear for document retrieval.
+QUERY_REFORMULATION_TEMPLATE = """Given the conversation history and the latest user question, reformulate the question to be standalone and clear.
 
 CONVERSATION HISTORY:
 {chat_history}
