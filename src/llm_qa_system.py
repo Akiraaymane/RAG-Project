@@ -4,7 +4,7 @@ import sys
 from typing import Dict, Any
 from pathlib import Path
 
-from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
@@ -52,12 +52,12 @@ class LLMQASystem:
         self.logger.info(f"LLMQASystem initialized with Ollama")
         self.logger.info(f"Model: {self.model_name}")
     
-    def _init_llm(self) -> Ollama:
+    def _init_llm(self) -> OllamaLLM:
         """Initialize the Ollama LLM."""
         self.logger.info(f"Connecting to Ollama at {self.base_url}")
         self.logger.info(f"Model: {self.model_name}")
         
-        llm = Ollama(
+        llm = OllamaLLM(
             model=self.model_name,
             base_url=self.base_url,
             temperature=self.temperature,
@@ -65,7 +65,7 @@ class LLMQASystem:
         
         # Test connection
         try:
-            test_response = llm.invoke("Say 'OK' if you're working.")
+            test_response = llm.invoke("Say OK")
             self.logger.info(f"Ollama connection successful!")
         except Exception as e:
             self.logger.error(f"Failed to connect to Ollama: {e}")
@@ -82,7 +82,7 @@ class LLMQASystem:
         return DocumentRetriever(vector_store=vector_store)
     
     @property
-    def llm(self) -> Ollama:
+    def llm(self) -> OllamaLLM:
         """Lazy loading of LLM."""
         if self._llm is None:
             self._llm = self._init_llm()
