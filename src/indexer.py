@@ -18,8 +18,8 @@ class DocumentIndexer:
     def __init__(
         self,
         embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
-        chunk_size: int = 512,
-        chunk_overlap: int = 64,
+        chunk_size: int = 300,
+        chunk_overlap: int = 14,
         vector_db_path: str = "data/vector_db",
         raw_data_path: str = "data"
     ) -> None:
@@ -85,3 +85,25 @@ class DocumentIndexer:
             "total_chunks": len(all_docs["ids"]),
             "chunks_by_source": sources
         }
+    def view_chunks(self, filename: str) -> List[Dict]:
+        """Affiche les chunks d'un document spécifique"""
+        if not self.vector_store:
+            if not self.db_path.exists():
+                raise FileNotFoundError("Base vectorielle non trouvée")
+            self.vector_store = Chroma(
+                persist_directory=str(self.db_path),
+                embedding_function=self.embeddings
+            )
+        
+        all_docs = self.vector_store.get()
+        chunks = []
+        
+        for i, (doc_id, metadata) in enumerate(zip(all_docs["ids"], all_docs["metadatas"])):
+            if filename in metadata.get("source", ""):
+                chunks.append({
+                    "chunk_id": i,
+                    "page": metadata.get("page"),
+                    "content": all_docs["documents"][i]
+                })
+        
+        return chunks

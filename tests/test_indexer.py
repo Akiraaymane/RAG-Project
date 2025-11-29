@@ -1,5 +1,5 @@
 """
-tests/test_indexer.py - Test simple Q1
+tests/test_indexer.py - Test indexer
 """
 import pytest
 from src.indexer import DocumentIndexer

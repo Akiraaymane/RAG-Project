@@ -1,6 +1,6 @@
 embedding:
-  model: "sentence-transformers/all-MiniLM-L6-v2"
-
+  #model: "sentence-transformers/all-mpnet-base-v2" # trop lent
+  model: "sentence-transformers/all-MiniLM-L6-v2" #après de l'utiliser et avoir des résultats de search pas vraiment convaincant , on change le modele d'embedding pour un plus puissant
 splitting:
   chunk_size: 512
   chunk_overlap: 64
@@ -8,3 +8,6 @@ splitting:
 storage:
   vector_db_path: "data/vector_db"
   raw_data_path: "data"
+
+retrieval:
+  top_k: 3  
