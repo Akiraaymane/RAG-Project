@@ -1,0 +1,10 @@
+data_dir: "data"
+persist_dir: "storage/faiss_db"
+
+chunk_size: 1000
+chunk_overlap: 200
+
+embedding_model_name: "sentence-transformers/all-MiniLM-L6-v2"
+
+# nombre max de docs à indexer
+max_docs: null   # ou un entier, ex: 20

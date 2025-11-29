@@ -1,1 +1,13 @@
-@le framework LangChain ( https://python.langchain.com/docs/tutorials/rag/ )
+langchain
+langchain-community
+langchain-text-splitters
+sentence-transformers
+faiss-cpu
+pypdf
+pyyaml
+transformers
+accelerate
+groq
+scikit-learn
+numpy
+rouge-score
