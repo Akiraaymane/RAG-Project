@@ -1,0 +1,10 @@
+# requirements.txt - Dépendances Q1
+langchain
+langchain-community
+chromadb
+sentence-transformers
+pypdf
+pydantic
+pyyaml
+pytest
+reportlab

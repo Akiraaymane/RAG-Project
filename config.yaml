@@ -1,0 +1,10 @@
+embedding:
+  model: "sentence-transformers/all-MiniLM-L6-v2"
+
+splitting:
+  chunk_size: 512
+  chunk_overlap: 64
+
+storage:
+  vector_db_path: "data/vector_db"
+  raw_data_path: "data"
