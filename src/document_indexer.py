@@ -1,4 +1,3 @@
-
 """Document indexing module for the RAG system (Q1)."""
 from pathlib import Path
 from typing import List, Optional
