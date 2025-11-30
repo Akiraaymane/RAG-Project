@@ -1,1 +1,5 @@
-@le framework LangChain ( https://python.langchain.com/docs/tutorials/rag/ )
+pypdf
+sentence-transformers
+chromadb
+pyyaml
+groq
