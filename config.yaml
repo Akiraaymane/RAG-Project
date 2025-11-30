@@ -1,5 +1,5 @@
 groq_api_key: ""
-data_dir: "data/"
+data_dir: "Datas/"
 db_path: "store/chroma"
 embedding_model: "sentence-transformers/all-mpnet-base-v2"
 llm_model: "llama-3.1-8b-instant"
