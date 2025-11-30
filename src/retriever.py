@@ -5,7 +5,9 @@ from typing import List, Tuple
 from pathlib import Path
 
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
+
+#from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 
 

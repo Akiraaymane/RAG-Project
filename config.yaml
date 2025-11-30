@@ -11,3 +11,9 @@ storage:
 
 retrieval:
   top_k: 3  
+
+llm:
+  provider: "huggingface"
+  model: "mistralai/Mistral-7B-Instruct-v0.2"
+  temperature: 0.7
+  max_tokens: 1024
