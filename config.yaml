@@ -16,7 +16,7 @@ document_processing:
 # Embedding Model (Hugging Face)
 embeddings:
   model_name: "sentence-transformers/all-MiniLM-L6-v2"
-  device: "cuda"  # Use GPU for embeddings
+  device: "cpu"  # Use GPU for embeddings
 
 # Vector Store
 vector_store:
@@ -33,7 +33,7 @@ retrieval:
 llm:
   provider: "ollama"
   model_name: "qwen2.5:1.5b"  # Qwen 2.5 1.5B model
-  base_url: "http://localhost:11434"
+  base_url: "http://127.0.0.1:11434"
   max_new_tokens: 512
   temperature: 0.7
 
