@@ -1,110 +1,79 @@
-"""
-template.py - Script pour créer automatiquement l'architecture du projet RAG
-"""
-import os
-from pathlib import Path
+"""Prompt templates for the RAG system (Q3)."""
+
+# Basic RAG prompt template - Optimized for better answers
+RAG_PROMPT_TEMPLATE = """You are a helpful AI assistant that answers questions based on the provided context documents.
+
+CONTEXT FROM DOCUMENTS:
+{context}
+
+---
+
+QUESTION: {question}
+
+INSTRUCTIONS:
+1. Answer the question based on the context provided above.
+2. Be concise and direct - aim for 2-4 sentences unless more detail is needed.
+3. If you find relevant information, provide the answer confidently.
+4. Only say "I don't have enough information" if the context truly contains nothing relevant.
+5. Do NOT repeat the sources in your answer - they will be shown separately.
+
+ANSWER:"""
 
 
-def create_project_structure():
-    """Crée la structure complète du projet RAG"""
-    
-    # Définir la structure du projet
-    structure = {
-        'src': {
-            'files': [
-                '__init__.py',
-                'document_indexer.py',
-                'vector_store.py',
-                'document_retriever.py',
-                'llm_qa_system.py',
-                'evaluator.py',
-                'chatbot.py'
-            ],
-            'utils': {
-                'files': [
-                    '__init__.py',
-                    'config_loader.py',
-                    'logger.py',
-                    'metrics.py'
-                ]
-            }
-        },
-        'data': {
-            'files': []
-        }
-    }
-    
-    # Fichiers à la racine
-    root_files = [
-        'config.yaml',
-        'requirements.txt',
-        'cli.py',
-        'README.md',
-        '.gitignore'
-    ]
-    
-    # Créer les dossiers et fichiers
-    def create_structure(base_path, struct):
-        for name, content in struct.items():
-            # Créer le dossier
-            folder_path = base_path / name
-            folder_path.mkdir(parents=True, exist_ok=True)
-            print(f"Cree: {folder_path}")
-            
-            # Créer les fichiers dans ce dossier
-            if 'files' in content:
-                for file in content['files']:
-                    file_path = folder_path / file
-                    file_path.touch(exist_ok=True)
-                    print(f"  Cree: {file_path}")
-            
-            # Récursion pour les sous-dossiers
-            sub_folders = {k: v for k, v in content.items() if k != 'files'}
-            if sub_folders:
-                create_structure(folder_path, sub_folders)
-    
-    # Obtenir le chemin du projet
-    project_root = Path.cwd()
-    print(f"Création du projet dans: {project_root}\n")
-    
-    # Créer la structure
-    create_structure(project_root, structure)
-    
-    # Créer les fichiers à la racine
-    print(f"\nCreation des fichiers racine:")
-    for file in root_files:
-        file_path = project_root / file
-        file_path.touch(exist_ok=True)
-        print(f"Cree: {file_path}")
-    
-    print("\nStructure du projet creee avec succes!")
-    print("\nStructure finale:")
-    print_tree(project_root)
+# RAG prompt with chat history for chatbot (Q5)
+RAG_CHAT_PROMPT_TEMPLATE = """You are a helpful AI assistant that answers questions based on documents and conversation history.
+
+CONVERSATION HISTORY:
+{chat_history}
+
+---
+
+CONTEXT FROM DOCUMENTS:
+{context}
+
+---
+
+CURRENT QUESTION: {question}
+
+INSTRUCTIONS:
+1. Consider the conversation history for context.
+2. Answer based on the document context provided.
+3. Be concise - 2-4 sentences unless more detail is needed.
+4. Maintain consistency with previous responses.
+
+ANSWER:"""
 
 
-def print_tree(directory, prefix="", max_depth=3, current_depth=0):
-    """Affiche l'arborescence du projet"""
-    if current_depth >= max_depth:
-        return
-    
-    try:
-        contents = sorted(directory.iterdir(), key=lambda x: (not x.is_dir(), x.name))
-        
-        for i, path in enumerate(contents):
-            # Ignorer certains dossiers
-            if path.name in ['__pycache__', '.git', 'venv', 'env', '.idea']:
-                continue
-            
-            is_last = i == len(contents) - 1
-            current_prefix = "└── " if is_last else "├── "
-            print(f"{prefix}{current_prefix}{path.name}")
-            
-            if path.is_dir():
-                extension = "    " if is_last else "│   "
-                print_tree(path, prefix + extension, max_depth, current_depth + 1)
-    except PermissionError:
-        pass
+# System message for chatbot
+SYSTEM_MESSAGE = """You are an intelligent assistant specialized in answering questions about AI research papers, specifically about Transformers, BERT, and GPT-3. You provide accurate, concise answers based on the document content."""
 
 
-if __name__ == "__main__":
-    create_project_structure()
+# Query reformulation prompt (for better retrieval)
+QUERY_REFORMULATION_TEMPLATE = """Given the conversation history and the latest user question, reformulate the question to be standalone and clear.
+
+CONVERSATION HISTORY:
+{chat_history}
+
+LATEST QUESTION: {question}
+
+Reformulated standalone question:"""
+
+
+# Evaluation prompt for answer assessment
+EVALUATION_PROMPT_TEMPLATE = """Evaluate the following answer based on the provided context and question.
+
+CONTEXT:
+{context}
+
+QUESTION: {question}
+
+ANSWER: {answer}
+
+Rate the answer on these criteria (1-5 scale):
+1. FAITHFULNESS: Does the answer only contain information from the context?
+2. RELEVANCE: Does the answer address the question asked?
+3. COMPLETENESS: Does the answer cover all relevant information from the context?
+4. CLARITY: Is the answer clear and well-structured?
+
+Provide your evaluation as JSON:
+{{"faithfulness": X, "relevance": X, "completeness": X, "clarity": X, "explanation": "..."}}"""
