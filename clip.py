@@ -39,3 +39,6 @@ rag = RAG(
 answer = rag.answer_query(relevant_chunks, config["user_query"])
 
 print(answer)
+
+
+## Answer this one brothe
