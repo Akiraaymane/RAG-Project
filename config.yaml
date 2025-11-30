@@ -1,11 +1,1 @@
-data_path: "data/raw"
 
-chunk_size: 500
-chunk_overlap: 50
-
-embedding_model: "all-MiniLM-L6-v2"
-
-llm:
-  provider: "groq"
-  model: "llama3-70b-8192"
-  api_key: "YOUR_GROQ_API_KEY"
