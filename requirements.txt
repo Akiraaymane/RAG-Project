@@ -1,8 +1,1 @@
-langchain
-langchain-community
-langchain-text-splitters
-langchain-groq
-chromadb
-sentence-transformers
-pyyaml
 
