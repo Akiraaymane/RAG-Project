@@ -1,44 +1,43 @@
+#!/usr/bin/env python3
+import argparse, yaml, os
 from src.loader import DocumentLoader
-from src.splitter import DocumentSplitter
-from src.embedder import Embedder
-from src.vectorstore import VectorStore
-from src.retriever import Retriever
-from src.rag import RAG
-from src.utils import load_config
+from src.indexer import DocumentIndexer
+from src.retriever import RetrieverBuilder
+from src.llm import LLMBuilder
+from src.pipeline import RAGPipeline
 
-# Load config
-config = load_config("config.yaml")
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--query", required=True)
+    parser.add_argument("--config", default="config.yaml")
+    args = parser.parse_args()
 
-# 1. Load documents
-loader = DocumentLoader(config["data_path"])
-documents = loader.load_documents()
+    cfg = yaml.safe_load(open(args.config))
 
-# 2. Split documents
-splitter = DocumentSplitter(config["chunk_size"], config["chunk_overlap"])
-chunks = splitter.split_documents(documents)
+    os.environ["GROQ_API_KEY"] = cfg["groq_api_key"]
 
-# 3. Embed chunks
-embedder = Embedder(config["embedding_model"])
-embedded_chunks = embedder.embed_chunks(chunks)
+    # 1. Load and split markdown files
+    loader = DocumentLoader(cfg["data_dir"])
+    chunks = loader.load()
 
-# 4. Store embeddings
-vector_store = VectorStore(config["vector_store_path"])
-vector_store.add_embeddings(embedded_chunks)
-vector_store.persist()
+    # 2. Index documents (or load existing)
+    indexer = DocumentIndexer(cfg["db_path"], cfg["embedding_model"])
+    if not os.path.exists(cfg["db_path"]):
+        db = indexer.build_index(chunks)
+    else:
+        db = indexer.load_index()
 
-# 5. Retrieve relevant chunks
-retriever = Retriever(vector_store, embedder)
-relevant_chunks = retriever.retrieve(config["user_query"])
+    # 3. Build retriever
+    retriever = RetrieverBuilder(db).build(cfg["top_k"])
 
-# 6. Generate answer using Grok
-rag = RAG(
-    config["llm"]["provider"], 
-    config["llm"]["model"], 
-    config["llm"]["api_key"]
-)
-answer = rag.answer_query(relevant_chunks, config["user_query"])
+    # 4. Build LLM
+    llm = LLMBuilder(cfg["groq_api_key"], cfg["llm_model"]).build()
 
-print(answer)
+    # 5. Build RAG
+    rag = RAGPipeline(llm, retriever)
+
+    print(rag.ask(args.query))
 
 
-## Answer this one brothe
+if __name__ == "__main__":
+    main()
