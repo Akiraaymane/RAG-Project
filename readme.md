@@ -303,7 +303,7 @@ python cli.py evaluate -o results.json
 | Metric | Score | Description |
 |--------|-------|-------------|
 | **Precision@5** | 0.98 | Relevant documents in top 5 |
-| **Recall@5** | 4.90 | Fraction of relevant docs retrieved |
+| **Recall@5** | 0.90 | Fraction of relevant docs retrieved |
 | **MRR** | 1.00 | Mean Reciprocal Rank |
 | **Hit Rate@5** | 1.00 | Success rate for finding relevant docs |
 
