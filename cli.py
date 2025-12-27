@@ -685,5 +685,284 @@ def web(ctx, port):
 
 
 
+# =============================================================================
+# EXPERIMENT COMMAND
+# =============================================================================
+@cli.command()
+@click.option('--output', '-o', default='experiment_results.json', help='Output file for results')
+@click.option('--chunk-sizes', '-c', default='256,512,1000', help='Comma-separated chunk sizes to test')
+@click.option('--thresholds', '-t', default='0.3,0.4', help='Comma-separated similarity thresholds')
+@click.option('--quick', is_flag=True, help='Quick mode with fewer configurations')
+@click.option('--verbose', '-v', is_flag=True, help='Show detailed output')
+@click.pass_context
+def experiment(ctx, output, chunk_sizes, thresholds, quick, verbose):
+    """
+    🧪 Run RAG experiments with different configurations.
+    
+    \b
+    Examples:
+      python cli.py experiment
+      python cli.py experiment --quick
+      python cli.py experiment -c "512,1000" -t "0.3,0.5" -o results.json
+    """
+    config = ctx.obj['config']
+    print_banner()
+    
+    # Parse parameters
+    chunk_list = [int(x.strip()) for x in chunk_sizes.split(',')]
+    threshold_list = [float(x.strip()) for x in thresholds.split(',')]
+    
+    # Quick mode: use only one embedding model
+    if quick:
+        embedding_list = ["sentence-transformers/all-MiniLM-L6-v2"]
+    else:
+        embedding_list = None  # Use all from config
+    
+    console.print(Panel(
+        f"[bold]Chunk Sizes:[/] [cyan]{chunk_list}[/]\n"
+        f"[bold]Thresholds:[/] [cyan]{threshold_list}[/]\n"
+        f"[bold]Quick Mode:[/] [cyan]{quick}[/]\n"
+        f"[bold]Output:[/] [cyan]{output}[/]",
+        title="🧪 RAG Experimentation",
+        border_style="blue"
+    ))
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console
+    ) as progress:
+        task = progress.add_task("[cyan]Loading experimentation module...", total=None)
+        
+        from experimenter import RAGExperimenter
+        from evaluator import RAGEvaluator
+        
+        experimenter = RAGExperimenter(config)
+        evaluator = RAGEvaluator(config_path=config)
+        
+        progress.update(task, description="[cyan]Loading evaluation dataset...")
+        
+        try:
+            test_data = evaluator.load_evaluation_dataset("data/evaluation_dataset.json")
+        except FileNotFoundError:
+            test_data = evaluator.create_evaluation_dataset(
+                questions=[
+                    "What is the Transformer architecture?",
+                    "What does BERT stand for?",
+                    "What is few-shot learning?",
+                ],
+                ground_truths=[
+                    "The Transformer is based on self-attention mechanisms.",
+                    "BERT stands for Bidirectional Encoder Representations from Transformers.",
+                    "Few-shot learning uses a few examples without gradient updates.",
+                ],
+                expected_sources=[
+                    ["1706.03762v7.pdf"],
+                    ["1810.04805v2.pdf"],
+                    ["2005.14165v4.pdf"],
+                ]
+            )
+        
+        progress.update(task, description=f"[green]✓ Loaded {len(test_data)} test samples")
+    
+    console.print(f"\n[bold]Running experiments...[/]\n")
+    
+    # Run experiments
+    results = experimenter.run_all_experiments(
+        evaluation_samples=test_data,
+        chunk_sizes=chunk_list,
+        embedding_models=embedding_list,
+        thresholds=threshold_list,
+        save_intermediate=True
+    )
+    
+    # Generate and save report
+    report = experimenter.generate_report(output)
+    
+    # Display summary
+    experimenter.print_summary()
+    
+    console.print(Panel(
+        f"[green]Completed [bold]{len(results)}[/] experiments![/]\n"
+        f"Results saved to [cyan]{output}[/]",
+        title="✅ Complete",
+        border_style="green"
+    ))
+
+
+# =============================================================================
+# REWRITE COMMAND
+# =============================================================================
+@cli.command()
+@click.argument('query')
+@click.option('--strategy', '-s', default='auto',
+              type=click.Choice(['auto', 'expand', 'decompose', 'hyde', 'stepback']))
+@click.option('--verbose', '-v', is_flag=True, help='Show rewriting details')
+@click.option('--search', is_flag=True, help='Also run search with rewritten query')
+@click.pass_context
+def rewrite(ctx, query, strategy, verbose, search):
+    """
+    ✏️ Rewrite a query to improve retrieval.
+    
+    \b
+    Strategies:
+      auto      - Automatically select best strategy
+      expand    - Add synonyms and related terms
+      decompose - Break into simpler sub-queries
+      hyde      - Generate hypothetical document
+      stepback  - Create broader context query
+    
+    \b
+    Examples:
+      python cli.py rewrite "What is BERT?"
+      python cli.py rewrite "Compare attention in BERT vs GPT" -s decompose
+      python cli.py rewrite "learning rate for training" -s stepback -v
+    """
+    config = ctx.obj['config']
+    print_banner()
+    
+    console.print(Panel(
+        f"[bold]Original Query:[/] [cyan]{query}[/]\n"
+        f"[bold]Strategy:[/] [cyan]{strategy}[/]",
+        title="✏️ Query Rewriter",
+        border_style="blue"
+    ))
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console
+    ) as progress:
+        task = progress.add_task("[cyan]Loading rewriter...", total=None)
+        
+        from query_rewriter import QueryRewriter
+        
+        rewriter = QueryRewriter(config_path=config)
+        
+        progress.update(task, description="[cyan]Rewriting query...")
+        
+        result = rewriter.rewrite(query, strategy=strategy)
+        
+        progress.update(task, description="[green]✓ Query rewritten")
+    
+    console.print()
+    
+    # Display result
+    console.print(Panel(
+        f"[bold]Strategy Used:[/] [yellow]{result.strategy_used.upper()}[/]",
+        border_style="yellow"
+    ))
+    
+    console.print("\n[bold]Rewritten Queries:[/]\n")
+    for i, rq in enumerate(result.rewritten_queries, 1):
+        console.print(f"  [cyan]{i}.[/] {rq}")
+    
+    if verbose and result.metadata:
+        console.print(f"\n[dim]Metadata: {result.metadata}[/]")
+    
+    # Optionally run search with rewritten queries
+    if search:
+        console.print("\n[bold]Running search with rewritten queries...[/]\n")
+        
+        retriever = DocumentRetriever(config_path=config)
+        
+        for rq in result.rewritten_queries[:2]:  # Limit to first 2
+            results = retriever.retrieve(rq, top_k=3, with_scores=True)
+            if results:
+                console.print(f"\n[yellow]Results for:[/] {rq[:50]}...")
+                console.print(create_results_table(results, title=f"Query: {rq[:30]}..."))
+
+
+# =============================================================================
+# QUALITY COMMAND (Enhanced Evaluation)
+# =============================================================================
+@cli.command()
+@click.argument('question')
+@click.option('--ground-truth', '-g', default=None, help='Expected answer for comparison')
+@click.option('--verbose', '-v', is_flag=True, help='Show detailed metrics')
+@click.pass_context
+def quality(ctx, question, ground_truth, verbose):
+    """
+    📊 Evaluate answer quality with detailed metrics.
+    
+    \b
+    Metrics:
+      - Factuality (grounding in sources)
+      - Coherence (logical flow)
+      - Precision (accuracy)
+    
+    \b
+    Examples:
+      python cli.py quality "What is BERT?"
+      python cli.py quality "What is BERT?" -g "Bidirectional Encoder..." -v
+    """
+    config = ctx.obj['config']
+    print_banner()
+    
+    console.print(Panel(
+        f"[bold]Question:[/] [cyan]{question}[/]",
+        title="📊 Quality Evaluation",
+        border_style="blue"
+    ))
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console
+    ) as progress:
+        task = progress.add_task("[cyan]Generating answer...", total=None)
+        
+        from quality_evaluator import QualityEvaluator
+        
+        qa_system = LLMQASystem(config)
+        result = qa_system.answer(question, return_sources=True)
+        
+        progress.update(task, description="[cyan]Evaluating quality...")
+        
+        evaluator = QualityEvaluator(config_path=config)
+        
+        # Use ground truth if provided, otherwise use a placeholder
+        gt = ground_truth or "No ground truth provided"
+        
+        metrics = evaluator.evaluate(
+            answer=result['answer'],
+            ground_truth=gt,
+            context=result['context'],
+            question=question
+        )
+        
+        progress.update(task, description="[green]✓ Evaluation complete")
+    
+    # Display answer
+    console.print()
+    console.print(Panel(
+        Markdown(result['answer']),
+        title="💡 Generated Answer",
+        border_style="green"
+    ))
+    
+    # Display metrics
+    console.print()
+    metrics_dict = metrics.to_dict()
+    
+    for category, values in metrics_dict.items():
+        table = Table(
+            title=f"📊 {category.upper()} Metrics",
+            show_header=True,
+            header_style="bold blue"
+        )
+        table.add_column("Metric", style="cyan")
+        table.add_column("Score", style="green")
+        table.add_column("Bar", style="white")
+        
+        for metric, score in values.items():
+            bar = "█" * int(score * 20) + "░" * (20 - int(score * 20))
+            table.add_row(metric, f"{score:.4f}", bar)
+        
+        console.print(table)
+        console.print()
+
+
 if __name__ == '__main__':
     cli()
+
